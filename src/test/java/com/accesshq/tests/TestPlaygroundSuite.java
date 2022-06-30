@@ -3,11 +3,23 @@ package com.accesshq.tests;
 import com.accesshq.datamodels.State;
 import com.accesshq.model.Form;
 import com.accesshq.model.NavBar;
+import com.accesshq.model.Planet;
 import com.accesshq.model.PlanetPage;
-import org.junit.jupiter.api.*;
-import org.openqa.selenium.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Platform;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.*;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
 
 public class TestPlaygroundSuite {
@@ -15,8 +27,9 @@ public class TestPlaygroundSuite {
     private WebDriver driver;
 
     @BeforeEach
-    public void setup() {
-        driver = new ChromeDriver();
+    public void setup() throws MalformedURLException {
+        var capability = new DesiredCapabilities("chrome", "any", Platform.ANY);
+        driver = new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), capability);
         driver.manage().window().maximize();
         driver.get("https://d18u5zoaatmpxx.cloudfront.net/");
     }
@@ -57,10 +70,21 @@ public class TestPlaygroundSuite {
 
         // Act
         var planetPage = new PlanetPage(driver);
-        planetPage.clickExplore("Earth");
+        planetPage.clickExplore(planetPage.getPlanet(p -> p.getName().equalsIgnoreCase("Earth")));
 
         // Assert
         Assertions.assertEquals("Exploring Earth", planetPage.getPopupText());
+    }
+
+    @Test
+    public void VerifyExploring58232() {
+        // Arrange
+        new NavBar(driver).clickPlanets();
+
+        // Act
+        var planetPage = new PlanetPage(driver);
+        Planet planet = planetPage.getPlanet(p -> p.getRadius() == 58232);
+        planetPage.clickExplore(planet);
     }
 
     @AfterEach
